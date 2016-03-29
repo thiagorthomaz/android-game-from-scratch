@@ -89,57 +89,31 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         }
     }
 
-    class Sprite {
-        int x;
-        int y;
-        int directionX = 1;
-        int directionY = 1;
-        int speed = 10;
-        int color = 0;
-        boolean visible = false;
-        Bitmap image;
-
-        public Sprite(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public Sprite(int x, int y, Bitmap image) {
-            this(x, y);
-            this.image = image;
-        }
-
-        public Sprite(int x, int y, Bitmap image, int color) {
-            this(x, y, image);
-            this.color = color;
-        }
-    }
-
     private void moveBlueballon(){
 
         Sprite blueballoon = sprites[1];
-        blueballoon.visible = true;
+        blueballoon.setVisible(true);
         blueballoon.x = screenWidth -100;
 
-        if ((blueballoon.x < 0) || ((blueballoon.x + blueballoon.image.getWidth()) > screenWidth)) {
+        if ((blueballoon.x < 0) || ((blueballoon.x + blueballoon.getWidth()) > screenWidth)) {
             blueballoon.directionX *= -1;
         }
-        if ((blueballoon.y < 0) || ((blueballoon.y + blueballoon.image.getHeight()) > screenHeight)) {
+        if ((blueballoon.y < 0) || ((blueballoon.y + blueballoon.getHeight()) > screenHeight)) {
             blueballoon.directionY *= -1;
         }
 
-        blueballoon.y += (blueballoon.directionY * blueballoon.speed);
+        blueballoon.y += (blueballoon.directionY * blueballoon.getSpeed());
         sprites[1] = blueballoon;
     }
 
     private void moveAcher(){
 
         Sprite archer = sprites[0];
-        archer.visible = true;
-        if ((archer.y < 0) || ((archer.y + archer.image.getHeight()) > screenHeight)) {
+        archer.setVisible(true);
+        if ((archer.y < 0) || ((archer.y + archer.getHeight()) > screenHeight)) {
             archer.directionY *= -1;
         }
-        archer.y += (archer.directionY * archer.speed);
+        archer.y += (archer.directionY * archer.getSpeed());
         sprites[0] = archer;
 
     }
@@ -147,24 +121,24 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     private void moveArrow(){
 
         Sprite arrow = sprites[2];
-        if (touched && arrow.visible == false){
-            sprites[3].visible = false;
-            arrow.visible = true;
+        if (touched && arrow.isVisible() == false){
+            sprites[3].setVisible(false);
+            arrow.setVisible(true);
             arrow.y = sprites[0].y; //Archer position
             arrow.x = sprites[0].x;
         }
 
-        if ((arrow.x < 0) || ((arrow.x + arrow.image.getWidth()) > screenWidth)) {
+        if ((arrow.x < 0) || ((arrow.x + arrow.getWidth()) > screenWidth)) {
             //arrow.directionX *= -1;
-            arrow.visible = false;
+            arrow.setVisible(false);
         }
-        if ((arrow.y < 0) || ((arrow.y + arrow.image.getHeight()) > screenHeight)) {
+        if ((arrow.y < 0) || ((arrow.y + arrow.getHeight()) > screenHeight)) {
             //arrow.directionY *= -1;
-            arrow.visible = false;
+            arrow.setVisible(false);
         }
         sprites[2] = arrow;
 
-        arrow.x += (arrow.directionX * arrow.speed);
+        arrow.x += (arrow.directionX * arrow.getSpeed());
 
     }
 
@@ -172,24 +146,24 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         Sprite arrow = sprites[2];
         Sprite blueballoon = sprites[1];
         Sprite popballoon = sprites[3];
-        float blueballon_y_max = blueballoon.y + blueballoon.image.getHeight();
+        float blueballon_y_max = blueballoon.y + blueballoon.getHeight();
         float blueballon_y_min = blueballoon.y;
 
-        float arrow_x_max = arrow.x + arrow.image.getWidth();
+        float arrow_x_max = arrow.x + arrow.getWidth();
 
 
         if (
             arrow.y <  blueballon_y_max
             && arrow.y > blueballon_y_min
             && blueballoon.x < arrow_x_max
-            && arrow.visible
+            && arrow.isVisible()
 
         ){
-            arrow.visible = false;
-            blueballoon.visible = false;
+            arrow.setVisible(false);
+            blueballoon.setVisible(false);
             popballoon.x = blueballoon.x;
             popballoon.y = blueballoon.y;
-            popballoon.visible = true;
+            popballoon.setVisible(true);
         }
 
         sprites[1] = blueballoon;
@@ -209,16 +183,11 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     }
 
     protected void render(Canvas canvas) {
-        canvas.drawColor(Color.BLACK);
+        canvas.drawColor(Color.WHITE);
         for (int index = 0, length = sprites.length; index < length; index++) {
             Paint p = null;
-            if (sprites[index].color != 0) {
-                p = new Paint();
-                ColorFilter filter = new LightingColorFilter(sprites[index].color, 0);
-                p.setColorFilter(filter);
-            }
-            if (sprites[index].visible) {
-                canvas.drawBitmap(sprites[index].image, sprites[index].x, sprites[index].y, p);
+            if (sprites[index].isVisible()) {
+                canvas.drawBitmap(sprites[index].getImage(), sprites[index].x, sprites[index].y, p);
             }
 
         }
