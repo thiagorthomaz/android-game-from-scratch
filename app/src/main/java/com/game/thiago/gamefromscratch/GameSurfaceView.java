@@ -1,20 +1,14 @@
 package com.game.thiago.gamefromscratch;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.graphics.drawable.PaintDrawable;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import java.util.ArrayList;
 
 public class GameSurfaceView extends SurfaceView implements Runnable {
     private boolean isRunning = false;
@@ -24,9 +18,10 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     private int screenWidth;
     private int screenHeight;
     private boolean touched = false;
-    private Sprite[] sprites;
+    //private Sprite[] sprites;
+    private ArrayList<Sprite> sprites = new ArrayList<Sprite>();
 
-    private final static int MAX_FPS = 40; //desired fps
+    private final static int MAX_FPS = 60; //desired fps
     private final static int FRAME_PERIOD = 1000 / MAX_FPS; // the frame period
 
     public GameSurfaceView(Context context) {
@@ -50,13 +45,13 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
         });
 
-        sprites = new Sprite[] {
-                new Sprite(1, 1, BitmapFactory.decodeResource(this.getResources(), R.drawable.archer)),
-                new Sprite(600, 400, BitmapFactory.decodeResource(this.getResources(), R.drawable.blueballoon)),
-                new Sprite(1, 1, BitmapFactory.decodeResource(this.getResources(), R.drawable.arrow)),
-                new Sprite(400, 800, BitmapFactory.decodeResource(this.getResources(), R.drawable.popballoon))
-        };
+        this.sprites.add(new Sprite(1, 60, BitmapFactory.decodeResource(this.getResources(), R.drawable.archer)));
+        this.sprites.add(new Sprite(1, 60, BitmapFactory.decodeResource(this.getResources(), R.drawable.blueballoon)));
+        this.sprites.add(new Sprite(1, 1, BitmapFactory.decodeResource(this.getResources(), R.drawable.arrow)));
+        this.sprites.add(new Sprite(400, 800, BitmapFactory.decodeResource(this.getResources(), R.drawable.popballoon)));
+
     }
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -89,10 +84,11 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         }
     }
 
-    private void moveBlueballon(){
+    private void prepareBlueballons(){
 
-        Sprite blueballoon = sprites[1];
+        Sprite blueballoon = this.sprites.get(1);
         blueballoon.setVisible(true);
+
         blueballoon.x = screenWidth -100;
 
         if ((blueballoon.x < 0) || ((blueballoon.x + blueballoon.getWidth()) > screenWidth)) {
@@ -102,50 +98,53 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
             blueballoon.directionY *= -1;
         }
 
-        blueballoon.y += (blueballoon.directionY * blueballoon.getSpeed());
-        sprites[1] = blueballoon;
+        sprites.set(1, blueballoon);
+
     }
 
     private void moveAcher(){
 
-        Sprite archer = sprites[0];
+        Sprite archer = this.sprites.get(0);
         archer.setVisible(true);
-        if ((archer.y < 0) || ((archer.y + archer.getHeight()) > screenHeight)) {
-            archer.directionY *= -1;
-        }
-        archer.y += (archer.directionY * archer.getSpeed());
-        sprites[0] = archer;
+        //if ((archer.y < 0) || ((archer.y + archer.getHeight()) > screenHeight)) {
+        //    archer.directionY *= -1;
+        //}
+        //archer.y += (archer.directionY * archer.getSpeed());
+        sprites.set(0, archer);
 
     }
 
     private void moveArrow(){
 
-        Sprite arrow = sprites[2];
+        Sprite arrow = this.sprites.get(2);
         if (touched && arrow.isVisible() == false){
-            sprites[3].setVisible(false);
+            //this.getSprite(3).setVisible(false);
             arrow.setVisible(true);
-            arrow.y = sprites[0].y; //Archer position
-            arrow.x = sprites[0].x;
+            //get archer position
+            arrow.y = this.sprites.get(0).y;
+            arrow.x = this.sprites.get(0).x;
         }
 
         if ((arrow.x < 0) || ((arrow.x + arrow.getWidth()) > screenWidth)) {
-            //arrow.directionX *= -1;
             arrow.setVisible(false);
+            //this.sprites.remove(2);
+
         }
         if ((arrow.y < 0) || ((arrow.y + arrow.getHeight()) > screenHeight)) {
-            //arrow.directionY *= -1;
             arrow.setVisible(false);
+            //this.sprites.remove(2);
         }
-        sprites[2] = arrow;
 
         arrow.x += (arrow.directionX * arrow.getSpeed());
+        sprites.set(2, arrow);
 
     }
 
     private void ballonColision(){
-        Sprite arrow = sprites[2];
-        Sprite blueballoon = sprites[1];
-        Sprite popballoon = sprites[3];
+        Sprite blueballoon = this.sprites.get(1);
+        Sprite arrow = this.sprites.get(2);
+        Sprite popballoon = this.sprites.get(3);
+
         float blueballon_y_max = blueballoon.y + blueballoon.getHeight();
         float blueballon_y_min = blueballoon.y;
 
@@ -166,14 +165,13 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
             popballoon.setVisible(true);
         }
 
-        sprites[1] = blueballoon;
-        sprites[2] = arrow;
-        sprites[3] = popballoon;
+        this.sprites.set(1, blueballoon);
+        this.sprites.set(2, arrow);
+        this.sprites.set(3, popballoon);
     }
 
-    protected void step() {
-
-        moveBlueballon();
+    protected void update() {
+        prepareBlueballons();
         moveAcher();
         moveArrow();
         ballonColision();
@@ -183,14 +181,14 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     }
 
     protected void render(Canvas canvas) {
-        canvas.drawColor(Color.WHITE);
-        for (int index = 0, length = sprites.length; index < length; index++) {
-            Paint p = null;
-            if (sprites[index].isVisible()) {
-                canvas.drawBitmap(sprites[index].getImage(), sprites[index].x, sprites[index].y, p);
+        canvas.drawColor(Color.GREEN);
+        for (Sprite s : this.sprites) {
+            if (s.isVisible()) {
+                Paint p = null;
+                canvas.drawBitmap(s.getImage(), s.x, s.y, p);
             }
-
         }
+
     }
 
     @Override
@@ -200,30 +198,31 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
             if (! holder.getSurface().isValid()) {
                 continue;
             }
-            long started = System.currentTimeMillis();
+            this.update();
+            this.draw();
+        }
+    }
 
-            // update
-            step();
-            // draw
-            Canvas canvas = holder.lockCanvas();
-            if (canvas != null) {
-                render(canvas);
-                holder.unlockCanvasAndPost(canvas);
-            }
+    public void draw(){
+        long started = System.currentTimeMillis();
+        Canvas canvas = holder.lockCanvas();
+        if (canvas != null) {
+            render(canvas);
+            holder.unlockCanvasAndPost(canvas);
+        }
 
-            float deltaTime = (System.currentTimeMillis() - started);
-            int sleepTime = (int) (FRAME_PERIOD - deltaTime);
-            if (sleepTime > 0) {
-                try {
-                    gameThread.sleep(sleepTime);
-                }
-                catch (InterruptedException e) {
-                }
+        float deltaTime = (System.currentTimeMillis() - started);
+        int sleepTime = (int) (FRAME_PERIOD - deltaTime);
+        if (sleepTime > 0) {
+            try {
+                gameThread.sleep(sleepTime);
             }
-            while (sleepTime < 0) {
-                step();
-                sleepTime += FRAME_PERIOD;
+            catch (InterruptedException e) {
             }
+        }
+        while (sleepTime < 0) {
+            this.update();
+            sleepTime += FRAME_PERIOD;
         }
     }
 

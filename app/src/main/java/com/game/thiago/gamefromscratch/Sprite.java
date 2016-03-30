@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
  */
 public class Sprite {
 
+    int id;
     int x;
     int y;
     int directionX = 1;
@@ -14,8 +15,6 @@ public class Sprite {
     private int speed = 10;
     private boolean visible = false;
     private Bitmap image;
-    private int height;
-    private int width;
 
     public Sprite(int x, int y) {
         this.x = x;
@@ -25,6 +24,14 @@ public class Sprite {
     public Sprite(int x, int y, Bitmap image) {
         this(x, y);
         this.image = image;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getX() {
@@ -76,7 +83,7 @@ public class Sprite {
     }
 
     public Bitmap getImage() {
-        return image;
+        return this.image;
     }
 
     public void setImage(Bitmap image) {
@@ -84,18 +91,11 @@ public class Sprite {
     }
 
     public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
+        return this.image.getHeight();
     }
 
     public int getWidth() {
-        return width;
+        return this.image.getWidth();
     }
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
 }
