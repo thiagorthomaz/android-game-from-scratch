@@ -16,13 +16,14 @@ public class Sprite {
     private boolean visible = false;
     private Bitmap image;
 
-    public Sprite(int x, int y) {
+    public Sprite(int id, int x, int y) {
+        this.id = id;
         this.x = x;
         this.y = y;
     }
 
-    public Sprite(int x, int y, Bitmap image) {
-        this(x, y);
+    public Sprite(int id, int x, int y, Bitmap image) {
+        this(id, x, y);
         this.image = image;
     }
 
