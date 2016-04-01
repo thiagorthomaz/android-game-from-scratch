@@ -11,6 +11,12 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import java.util.ArrayList;
 import com.game.thiago.gamefromscratch.Exceptions.SpriteException;
+import com.game.thiago.gamefromscratch.Model.Archer;
+import com.game.thiago.gamefromscratch.Model.ArcherDAO;
+import com.game.thiago.gamefromscratch.Model.ArrowDAO;
+import com.game.thiago.gamefromscratch.Model.BlueballoonDAO;
+import com.game.thiago.gamefromscratch.Model.PopballonDAO;
+import com.game.thiago.gamefromscratch.Model.Sprite;
 
 public class GameSurfaceView extends SurfaceView implements Runnable {
     private boolean isRunning = false;
@@ -20,15 +26,20 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     private int screenWidth;
     private int screenHeight;
     private boolean touched = false;
-    private int id_archer = 1;
-    private int id_arrow = 2;
+
     private ArrayList<Sprite> sprites = new ArrayList<Sprite>();
-    private ArrayList<Sprite> blueballons = new ArrayList<Sprite>();
+
+
+    private ArcherDAO archer_dao;
+    private Archer archer;
+    private ArrowDAO arrow_dao;
+    private BlueballoonDAO blueballoon_dao;
+    private PopballonDAO popballoon_dao;
 
     private final static int MAX_FPS = 60; //desired fps
     private final static int FRAME_PERIOD = 1000 / MAX_FPS; // the frame period
 
-    public GameSurfaceView(Context context) {
+    public GameSurfaceView(final Context context) {
         super(context);
 
         holder = getHolder();
@@ -41,7 +52,6 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                 screenWidth = width;
                 screenHeight = height;
-                loadBlueBallons();
             }
 
             @Override
@@ -50,83 +60,14 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
         });
 
-        this.sprites.add(new Sprite(this.id_archer, 1, 60, BitmapFactory.decodeResource(this.getResources(), R.drawable.archer)));
-        this.sprites.add(new Sprite(this.id_arrow, 1, 1, BitmapFactory.decodeResource(this.getResources(), R.drawable.arrow)));
-        this.sprites.add(new Sprite(4, 1, 60, BitmapFactory.decodeResource(this.getResources(), R.drawable.popballoon)));
+        this.archer_dao = new ArcherDAO(context);
+        this.archer = this.archer_dao.getModel();
+
+        this.blueballoon_dao = new BlueballoonDAO(context);
+        this.arrow_dao = new ArrowDAO(context);
+        this.popballoon_dao = new PopballonDAO(context);
 
     }
-
-    private void loadBlueBallons(){
-
-        this.blueballons.add(new Sprite(1, 900, 10, BitmapFactory.decodeResource(this.getResources(), R.drawable.blueballoon)));
-        this.blueballons.add(new Sprite(2, 1000, 10, BitmapFactory.decodeResource(this.getResources(), R.drawable.blueballoon)));
-        this.blueballons.add(new Sprite(3, 1000, 200, BitmapFactory.decodeResource(this.getResources(), R.drawable.blueballoon)));
-        this.blueballons.add(new Sprite(4, 1000, 300, BitmapFactory.decodeResource(this.getResources(), R.drawable.blueballoon)));
-        this.blueballons.add(new Sprite(6, 1000, 400, BitmapFactory.decodeResource(this.getResources(), R.drawable.blueballoon)));
-
-    }
-    public Sprite findSprite(int id) throws SpriteException{
-
-        for (Sprite s : this.sprites) {
-            if (s.getId() == id){
-                return s;
-            }
-        }
-        throw new SpriteException("Sprite not found!");
-
-    }
-
-    public Sprite findBlueballons(int id) throws SpriteException{
-
-        for (Sprite b : this.blueballons) {
-            if (b.getId() == id){
-                return b;
-            }
-        }
-        throw new SpriteException("Blueballon not found!");
-
-    }
-
-    public Sprite updateSprite(int id, Sprite sprite) throws SpriteException{
-
-        for (Sprite s : this.sprites) {
-            if (s.getId() == id){
-                int i = this.sprites.indexOf(s);
-                this.sprites.set(i, sprite);
-                return this.findSprite(s.getId());
-            }
-        }
-
-        throw new SpriteException("Sprite not found, update failed!");
-
-    }
-
-    public Sprite updateBlueballon(int id, Sprite blueballon) throws SpriteException{
-        for (Sprite b : this.blueballons) {
-            if (b.getId() == id){
-                int i = this.blueballons.indexOf(b);
-                this.blueballons.set(i, blueballon);
-                return this.findBlueballons(b.getId());
-            }
-        }
-
-        throw new SpriteException("Blueballon not found, update failed!");
-    }
-
-
-    public Sprite removeBlueballon(int id, Sprite blueballon) throws SpriteException{
-        for (Sprite b : this.blueballons) {
-            if (b.getId() == id){
-                int i = this.blueballons.indexOf(b);
-                this.blueballons.remove(i);
-                return this.findBlueballons(b.getId());
-            }
-        }
-
-        throw new SpriteException("Blueballon not found, update failed!");
-    }
-
-
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -159,40 +100,16 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
         }
     }
 
-    private void drawBlueballons(){
-
-        try{
-            for (Sprite blueballoon : this.blueballons) {
-                blueballoon.setVisible(true);
-
-                if ((blueballoon.x < 0) || ((blueballoon.x + blueballoon.getWidth()) > screenWidth)) {
-                    blueballoon.directionX *= -1;
-                }
-                if ((blueballoon.y < 0) || ((blueballoon.y + blueballoon.getHeight()) > screenHeight)) {
-                    blueballoon.directionY *= -1;
-                }
-
-                this.updateBlueballon(blueballoon.getId(), blueballoon);
-            }
-
-        }catch (SpriteException se) {
-            Log.i("SpriteException", "drawBlueballons: " + se.getMessage());
-        }
-
-    }
-
     private void moveAcher(){
 
         try {
 
-            Sprite archer = this.findSprite(this.id_archer);
-            archer.setVisible(true);
-            if ((archer.y < 0) || ((archer.y + archer.getHeight()) > screenHeight)) {
-                archer.directionY *= -1;
+            if ((this.archer.getY() < 0) || ((this.archer.getY() + this.archer.getHeight()) > screenHeight)) {
+                this.archer.directionY *= -1;
             }
-            archer.y += (archer.directionY * archer.getSpeed());
 
-            this.updateSprite(this.id_archer, archer);
+            archer.setY(this.archer.getY() + (this.archer.directionY * this.archer.getSpeed()));
+            this.archer_dao.updateSprite(this.archer);
 
         }catch (SpriteException se) {
             Log.i("SpriteException", "moveAcher: " + se.getMessage());
@@ -205,25 +122,24 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
         try {
 
-            Sprite arrow = this.findSprite(this.id_arrow);
+            Sprite arrow = this.arrow_dao.getModel();
             if (touched && arrow.isVisible() == false){
                 arrow.setVisible(true);
                 //get archer position
-                Sprite archer = this.findSprite(this.id_archer);
-                arrow.y = archer.getY();
-                arrow.x = archer.getX();
+                arrow.setY(this.archer.getY());
+                arrow.setX(this.archer.getX());
             }
 
-            if ((arrow.x < 0) || ((arrow.x + arrow.getWidth()) > screenWidth)) {
+            if ((arrow.getX() < 0) || ((arrow.getX() + arrow.getWidth()) > screenWidth)) {
                 arrow.setVisible(false);
             }
 
-            if ((arrow.y < 0) || ((arrow.y + arrow.getHeight()) > screenHeight)) {
+            if ((arrow.getY() < 0) || ((arrow.getY() + arrow.getHeight()) > screenHeight)) {
                 arrow.setVisible(false);
             }
 
-            arrow.x += (arrow.directionX * arrow.getSpeed());
-            this.updateSprite(this.id_arrow, arrow);
+            arrow.setX(arrow.getX() + (arrow.directionX * arrow.getSpeed()));
+            this.arrow_dao.updateSprite(arrow);
 
 
         }catch (SpriteException se) {
@@ -248,21 +164,21 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
         try{
 
-            Sprite arrow = this.findSprite(this.id_arrow);
+            Sprite arrow = this.arrow_dao.getModel();
 
             if (arrow.isVisible()) {
-                for (Sprite blueballoon : this.blueballons) {
+                for (Sprite blueballoon : this.blueballoon_dao.getSprites()) {
 
                     if (this.isCollision(arrow, blueballoon)) {
-                        Sprite popballoon = this.findSprite(4);
+                        Sprite popballoon = this.popballoon_dao.getModel();
                         arrow.setVisible(false);
                         blueballoon.setVisible(false);
                         popballoon.setVisible(true);
                         popballoon.setX(blueballoon.getX());
                         popballoon.setY(blueballoon.getY());
-                        this.removeBlueballon(blueballoon.getId(), blueballoon);
-                        this.updateSprite(4, popballoon);
-                        this.updateSprite(this.id_arrow, arrow);
+                        this.blueballoon_dao.removeSprite(blueballoon);
+                        this.blueballoon_dao.updateSprite(popballoon);
+                        this.arrow_dao.updateSprite(arrow);
                     }
                 }
             }
@@ -275,7 +191,6 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
     protected void update() {
 
-        drawBlueballons();
         moveAcher();
         moveArrow();
         ballonCollision();
@@ -286,19 +201,12 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
     protected void render(Canvas canvas) {
         canvas.drawColor(Color.GREEN);
-        for (Sprite s : this.sprites) {
-            if (s.isVisible()) {
-                Paint p = null;
-                canvas.drawBitmap(s.getImage(), s.x, s.y, p);
-            }
+
+        for (Sprite b : this.blueballoon_dao.getSprites()) {
+            Paint p = null;
+            canvas.drawBitmap(b.getImage(), b.getX(), b.getY(), p);
         }
 
-        if (this.blueballons.size() > 0) {
-            for (Sprite b : this.blueballons) {
-                Paint p = null;
-                canvas.drawBitmap(b.getImage(), b.x, b.y, p);
-            }
-        }
 
     }
 

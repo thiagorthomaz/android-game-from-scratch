@@ -1,23 +1,22 @@
-package com.game.thiago.gamefromscratch;
+package com.game.thiago.gamefromscratch.Model;
 
 import android.graphics.Bitmap;
 
 /**
  * Created by thiago on 28/03/16.
  */
-public class Sprite {
+public class Sprite extends Persistivel{
 
-    int id;
     int x;
     int y;
-    int directionX = 1;
-    int directionY = 1;
+    public int directionX = 1;
+    public int directionY = 1;
     private int speed = 10;
-    private boolean visible = false;
+    private boolean visible = true;
     private Bitmap image;
 
     public Sprite(int id, int x, int y) {
-        this.id = id;
+        this.setId(id);
         this.x = x;
         this.y = y;
     }
@@ -25,14 +24,6 @@ public class Sprite {
     public Sprite(int id, int x, int y, Bitmap image) {
         this(id, x, y);
         this.image = image;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public int getX() {
