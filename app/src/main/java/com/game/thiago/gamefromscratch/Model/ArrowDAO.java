@@ -15,8 +15,8 @@ public class ArrowDAO extends SpriteDAO {
     public ArrowDAO(Context context) {
 
         super(context);
-        this.s = new Arrow(this.getNextId(), 1, 1, BitmapFactory.decodeResource(this.getContext().getResources(), R.drawable.arrow));
-        this.addSprite(this.s);
+        //this.s = new Arrow(this.getNextId(), 1, 1, BitmapFactory.decodeResource(this.getContext().getResources(), R.drawable.arrow));
+        //this.addSprite(this.s);
 
     }
 
@@ -25,8 +25,10 @@ public class ArrowDAO extends SpriteDAO {
         return (Arrow) this.s;
     }
 
-    public void createArrow(){
-        this.addSprite(this.s);
+    public Arrow createArrow(Archer archer){
+        Arrow a = new Arrow(this.getNextId(), archer.getX(), archer.getY(), BitmapFactory.decodeResource(this.getContext().getResources(), R.drawable.arrow));
+        this.addSprite(a);
+        return a;
     }
 
 }

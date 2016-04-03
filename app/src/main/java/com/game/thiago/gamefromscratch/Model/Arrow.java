@@ -9,6 +9,5 @@ public class Arrow extends Sprite {
 
     public Arrow(int id, int x, int y, Bitmap image) {
         super(id, x, y, image);
-        this.setVisible(false);
     }
 }

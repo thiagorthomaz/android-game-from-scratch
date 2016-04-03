@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import com.game.thiago.gamefromscratch.Exceptions.SpriteException;
 import com.game.thiago.gamefromscratch.Model.Archer;
 import com.game.thiago.gamefromscratch.Model.ArcherDAO;
+import com.game.thiago.gamefromscratch.Model.Arrow;
 import com.game.thiago.gamefromscratch.Model.ArrowDAO;
+import com.game.thiago.gamefromscratch.Model.Blueballoon;
 import com.game.thiago.gamefromscratch.Model.BlueballoonDAO;
 import com.game.thiago.gamefromscratch.Model.PopballonDAO;
 import com.game.thiago.gamefromscratch.Model.Sprite;
@@ -26,9 +28,6 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     private int screenWidth;
     private int screenHeight;
     private boolean touched = false;
-
-    private ArrayList<Sprite> sprites = new ArrayList<Sprite>();
-
 
     private ArcherDAO archer_dao;
     private Archer archer;
@@ -122,26 +121,21 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
         try {
 
-            Sprite arrow = this.arrow_dao.getModel();
-            if (touched && arrow.isVisible() == false){
-                arrow.setVisible(true);
-                //get archer position
-                arrow.setY(this.archer.getY());
-                arrow.setX(this.archer.getX());
+            for (Sprite arrow : this.arrow_dao.getSprites()) {
+                if (arrow instanceof Arrow) {
+
+                    if ((arrow.getX() < 0) || ((arrow.getX() + arrow.getWidth()) > screenWidth)) {
+                        arrow.setVisible(false);
+                    }
+
+                    if ((arrow.getY() < 0) || ((arrow.getY() + arrow.getHeight()) > screenHeight)) {
+                        arrow.setVisible(false);
+                    }
+
+                    arrow.setX(arrow.getX() + (arrow.directionX * arrow.getSpeed()));
+                    this.arrow_dao.updateSprite(arrow);
+                }
             }
-
-            if ((arrow.getX() < 0) || ((arrow.getX() + arrow.getWidth()) > screenWidth)) {
-                arrow.setVisible(false);
-            }
-
-            if ((arrow.getY() < 0) || ((arrow.getY() + arrow.getHeight()) > screenHeight)) {
-                arrow.setVisible(false);
-            }
-
-            arrow.setX(arrow.getX() + (arrow.directionX * arrow.getSpeed()));
-            this.arrow_dao.updateSprite(arrow);
-
-
         }catch (SpriteException se) {
             Log.i("SpriteException", "moveArrow: " + se.getMessage());
         }
@@ -164,21 +158,22 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
         try{
 
-            Sprite arrow = this.arrow_dao.getModel();
+            for (Sprite arrow : this.arrow_dao.getSprites()) {
+                if (arrow instanceof Arrow) {
+                    for (Sprite blueballoon : this.blueballoon_dao.getSprites()) {
 
-            if (arrow.isVisible()) {
-                for (Sprite blueballoon : this.blueballoon_dao.getSprites()) {
-
-                    if (this.isCollision(arrow, blueballoon)) {
-                        Sprite popballoon = this.popballoon_dao.getModel();
-                        arrow.setVisible(false);
-                        blueballoon.setVisible(false);
-                        popballoon.setVisible(true);
-                        popballoon.setX(blueballoon.getX());
-                        popballoon.setY(blueballoon.getY());
-                        this.blueballoon_dao.removeSprite(blueballoon);
-                        this.blueballoon_dao.updateSprite(popballoon);
-                        this.arrow_dao.updateSprite(arrow);
+                        if ( blueballoon instanceof Blueballoon &&
+                            this.isCollision(arrow, blueballoon)) {
+                            Sprite popballoon = this.popballoon_dao.getModel();
+                            arrow.setVisible(false);
+                            blueballoon.setVisible(false);
+                            popballoon.setVisible(true);
+                            popballoon.setX(blueballoon.getX());
+                            popballoon.setY(blueballoon.getY());
+                            this.blueballoon_dao.removeSprite(blueballoon);
+                            this.blueballoon_dao.updateSprite(popballoon);
+                            this.arrow_dao.removeSprite(arrow);
+                        }
                     }
                 }
             }
@@ -189,9 +184,16 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
     }
 
+    private void createArrow(){
+        if (touched) {
+            Arrow arrow = (Arrow)arrow_dao.createArrow(this.archer);
+        }
+    }
+
     protected void update() {
 
         moveAcher();
+        createArrow();
         moveArrow();
         ballonCollision();
 
@@ -204,7 +206,10 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
 
         for (Sprite b : this.blueballoon_dao.getSprites()) {
             Paint p = null;
-            canvas.drawBitmap(b.getImage(), b.getX(), b.getY(), p);
+            if (b.isVisible()) {
+                canvas.drawBitmap(b.getImage(), b.getX(), b.getY(), p);
+            }
+
         }
 
 
@@ -223,6 +228,8 @@ public class GameSurfaceView extends SurfaceView implements Runnable {
     }
 
     public void draw(){
+
+        
         long started = System.currentTimeMillis();
         Canvas canvas = holder.lockCanvas();
         if (canvas != null) {
